@@ -1,0 +1,53 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.eggs/
+dist/
+build/
+sdist/
+*.egg-info/
+*.whl
+
+# Tek-specific ignores (adjust as needed)
+tek_modules/
+tek_data/
+tek_temp/
+*.tekc # Compiled Tek files (if applicable)
+# Tek project file (if applicable, replace with actual name)
+# project.tekproj
+
+# Environments
+.venv/
+venv/
+env/
+ENV/
+*.env
+
+# Log files and databases
+*.log
+*.sql
+*.sqlite
+*.db
+
+# OS or Editor-specific files
+.DS_Store
+Thumbs.db
+._*
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Temporary files
+*~
+\#*
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Additional user-specific ignores
+*.secret
+my_credentials.txt
