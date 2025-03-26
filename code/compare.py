@@ -11,6 +11,10 @@ Author: Anthony Andriano
 """
 
 import argparse
+import time
+
+import numpy as np
+import matplotlib.pyplot as plt
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
@@ -19,10 +23,8 @@ import sklearn.svm as svm
 import sklearn.linear_model as linear_model
 import sklearn.ensemble as ensemble
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import mean_squared_error, accuracy_score
+import sklearn.metrics as metrics
 import xgboost
-
-import matplotlib.pyplot as plt
 
 from data import Data
 
@@ -35,11 +37,22 @@ class Compare:
     """
     Load the dataset based on the user's choice.
     """
+    ### Start initialization
+    print("Initializing...")
+    self.args = args
+    time_start = time.time()
 
-    # Get the data based on the user's input
+    ### Get the data based on the user's input
+    time_previous = time_start
+
     X, y = Data(args.dataset).get_data()
 
-    # Split the data into training and testing sets
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to load data")
+
+    ### Split the data into training and testing sets
+    time_previous = time.time()
+
     X_train, X_test, self.y_train, self.y_test = train_test_split(
       X,
       y,
@@ -47,12 +60,22 @@ class Compare:
       random_state = args.random_seed
     )
 
-    # Normalize feature values
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to split data")
+
+    ### Normalize feature values
+    time_previous = time.time()
+
     scaler = StandardScaler()
     self.X_train = scaler.fit_transform(X_train)
     self.X_test = scaler.transform(X_test)
 
-    self.results = []
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to normalize data")
+
+    ### Finalize initialization
+    print(f"  {time.time() - time_previous:.4f}  Total time to initialize")
+    print()
 
   def run(self):
     """
@@ -82,6 +105,7 @@ class Compare:
     # Stochastic Gradient Descent Classifier is a supervised technique
     # that attempts to find the hyperplane that best separates the classes.
     self.SGDClassifier()
+    return
 
     # Random Forests is an ensemble technique that uses multiple decision
     # trees to predict the target values.
@@ -119,23 +143,65 @@ class Compare:
       )
     """
 
+    ### Initialize
+    print("Inititalizing Nearest Neighbors...")
+    time_start = time.time()
+
+    ### Create the model
+    time_previous = time_start
+
     machine = neighbors.NearestNeighbors(
       n_neighbors = 5,
       algorithm = 'ball_tree',   # for efficiency
       n_jobs = -1                # Use all CPU cores
     )
 
-    # Fit to training data
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to create model")
+
+    ### Fit to training data
+    time_previous = time.time()
+
     machine.fit(self.X_train)
 
-    # Find the 5 nearest neighbors for the first 10 test samples
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to train model")
+
+    ### Query the model
+    time_previous = time.time()
+
     distances, indices = machine.kneighbors(self.X_test[:10])
 
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to query model")
+
+    ### Evaluate the model
+    time_previous = time.time()
+
+    brute_force_distances = np.argsort(
+      metrics.pairwise_distances(self.X_train, self.X_test[:1], metric='euclidean'),
+      axis = 0
+    )[:5].flatten()
+    correct_matches = np.intersect1d(indices, brute_force_distances).size
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to brute force")
+
+    ### Print the results
+    print(f"  {time.time() - time_start:.4f}  Total Nearest Neighbors time ")
+
+    accuracy = correct_matches / 5 # Percentage of correct nearest neighbors
+    print(f"Accuracy of nearest neighbors: {accuracy * 100:.2f}%")
+
     # Print the indices of nearest neighbors and their distances
-    #for i, (d, idx) in enumerate(zip(distances, indices)):
-    #    print(f"Test sample {i}:")
-    #    print(f"  Nearest neighbors (indices): {idx}")
-    #    print(f"  Distances: {d}\n")
+    if self.args.verbosity > 1:
+      for i, (d, idx) in enumerate(zip(distances, indices)):
+          print(f"Test sample {i}: {self.X_test[i]}")
+          print(f"  Nearest neighbors (indices): {idx}")
+          print(f"  Distances: {d}")
+          print()
+    else:
+      print()
 
   def KNearestClassifier(self):
     """
@@ -156,23 +222,45 @@ class Compare:
         n_jobs = None
       )
     """
+
+    ### Initialize
+    print("Inititalizing K Nearest Neighbors Classifier...")
+    time_start = time.time()
+
+    ### Create the model
+    time_previous = time_start
+
     machine = neighbors.KNeighborsClassifier(
       n_neighbors = 5,
       algorithm = 'ball_tree',  # for efficiency
       n_jobs = -1               # Use all CPU cores
     )
 
-    # Train the model
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to create model")
+
+    ### Fit to training data
+    time_previous = time.time()
+
     machine.fit(self.X_train, self.y_train)
 
-    # Predict the target values
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to train model")
+
+    ### Make predictions
+    time_previous = time.time()
+
     y_pred = machine.predict(self.X_test)
 
-    # Evaluate accuracy
-    self.results.append([
-      "KNeighborsClassifier",
-      accuracy_score(self.y_test, y_pred),
-    ])
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to generate predictions")
+
+    ### Print the results
+    print(f"  {time.time() - time_start:.4f}  Total K Nearest Neighbors Classifier time")
+
+    accuracy = metrics.accuracy_score(self.y_test, y_pred)
+    print(f"Accuracy of K Nearest Neighbors Classifier: {accuracy * 100:.2f}%")
+    print()
 
   def KNeighborsRegressor(self):
     """
@@ -193,35 +281,47 @@ class Compare:
         n_jobs = None
       )
     """
+
+    ### Initialize
     n_neighbors = 5
 
     for i, weights in enumerate(["uniform", "distance"]):
+        print(f"Inititalizing K Nearest Neighbors Regressor: {weights}...")
+        time_start = time.time()
+
+        ### Create the model
+        time_previous = time_start
+
         machine = neighbors.KNeighborsRegressor(
           n_neighbors,
           weights = weights
         )
 
-        # Train the model
+        if self.args.verbosity > 0:
+          print(f"  {time.time() - time_previous:.4f}  Total time to create model")
+
+        ### Fit to training data
+        time_previous = time.time()
+
         machine.fit(self.X_train, self.y_train)
 
-        # Predict the target values
+        if self.args.verbosity > 0:
+          print(f"  {time.time() - time_previous:.4f}  Total time to train model")
+
+        ### Make predictions
+        time_previous = time.time()
+
         y_pred = machine.predict(self.X_test)
 
-        # Evaluate accuracy
-        self.results.append([
-          f"KNeighborsRegressor - {weights}",
-          mean_squared_error(self.y_test, y_pred),
-        ])
+        if self.args.verbosity > 0:
+          print(f"  {time.time() - time_previous:.4f}  Total time to generate predictions")
 
-        #plt.subplot(2, 1, i + 1)
-        #plt.scatter(self.X_train, self.y_train, color="darkorange", label="data")
-        #plt.plot(self.X_test, y_pred, color="navy", label="prediction")
-        #plt.axis("tight")
-        #plt.legend()
-        #plt.title("KNeighborsRegressor (k = %i, weights = '%s')" % (n_neighbors, weights))
+        ### Print the results
+        print(f"  {time.time() - time_start:.4f}  Total K Nearest Neighbors Regressor time ")
 
-    #plt.tight_layout()
-    #plt.show()
+        rmse = metrics.mean_squared_error(self.y_test, y_pred)
+        print(f"RMSE of K Nearest Neighbors Regressor: {rmse:.4f}")
+        print()
 
   def SVC(self):
     """
@@ -250,21 +350,42 @@ class Compare:
       )
     """
 
+    ### Initialize
+    print(f"Inititalizing SVC...")
+    time_start = time.time()
+
+    ### Create the model
+    time_previous = time_start
+
     machine = svm.SVC(
       kernel = 'linear'
     )
 
-    # Train the model
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to create model")
+
+    ### Fit to training data
+    time_previous = time_start
+
     machine.fit(self.X_train, self.y_train)
 
-    # Predict the target values
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to train model")
+
+    ### Make predictions
+    time_previous = time.time()
+
     y_pred = machine.predict(self.X_test)
 
-    # Evaluate accuracy
-    self.results.append([
-      "SVC",
-      accuracy_score(self.y_test, y_pred),
-    ])
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to generate predictions")
+
+    ### Print the results
+    print(f"  {time.time() - time_start:.4f}  Total SVC time")
+
+    accuracy = metrics.accuracy_score(self.y_test, y_pred)
+    print(f"Accuracy of SVC: {accuracy * 100:.2f}%")
+    print()
 
   def LinearSVC(self):
     """
@@ -290,22 +411,43 @@ class Compare:
       )
     """
 
+    ### Initialize
+    print(f"Inititalizing LinearSVC...")
+    time_start = time.time()
+
+    ### Create the model
+    time_previous = time_start
+
     machine = svm.LinearSVC(
       loss = 'hinge',
       max_iter = 100000
     )
 
-    # Train the model
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to create model")
+
+    ### Fit to training data
+    time_previous = time_start
+
     machine.fit(self.X_train, self.y_train)
 
-    # Predict the target values
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to train model")
+
+    ### Make predictions
+    time_previous = time.time()
+
     y_pred = machine.predict(self.X_test)
 
-    # Evaluate accuracy
-    self.results.append([
-      "LinearSVC",
-      accuracy_score(self.y_test, y_pred),
-    ])
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to generate predictions")
+
+    ### Print the results
+    print(f"  {time.time() - time_start:.4f}  Total LinearSVC time")
+
+    accuracy = metrics.accuracy_score(self.y_test, y_pred)
+    print(f"Accuracy of LinearSVC: {accuracy * 100:.2f}%")
+    print()
 
   def SGDClassifier(self):
     """
@@ -349,19 +491,40 @@ class Compare:
     Online Learning    No (batch training)               Yes (can update model with new data)
     """
 
+    ### Initialize
+    print(f"Inititalizing SGD Classifier...")
+    time_start = time.time()
+
+    ### Create the model
+    time_previous = time_start
+
     machine = linear_model.SGDClassifier()
 
-    # Train the model
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to create model")
+
+    ### Fit to training data
+    time_previous = time_start
+
     machine.fit(self.X_train, self.y_train)
 
-    # Predict the target values
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to train model")
+
+    ### Make predictions
+    time_previous = time.time()
+
     y_pred = machine.predict(self.X_test)
 
-    # Evaluate accuracy
-    self.results.append([
-      "SGDClassifier",
-      accuracy_score(self.y_test, y_pred),
-    ])
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to generate predictions")
+
+    ### Print the results
+    print(f"  {time.time() - time_start:.4f}  Total SGD Classifier")
+
+    accuracy = metrics.accuracy_score(self.y_test, y_pred)
+    print(f"Accuracy of SVC: {accuracy * 100:.2f}%")
+    print()
 
   def RandomForests(self):
     """
@@ -409,7 +572,7 @@ class Compare:
     # Evaluate accuracy
     self.results.append([
       "RandomForestClassifier",
-      accuracy_score(self.y_test, y_pred),
+      metrics.accuracy_score(self.y_test, y_pred),
     ])
 
   def AdaBoost(self):
@@ -442,7 +605,7 @@ class Compare:
     # Evaluate accuracy
     self.results.append([
       "AdaBoostClassifier",
-      accuracy_score(self.y_test, y_pred),
+      metrics.accuracy_score(self.y_test, y_pred),
     ])
 
   def XGBClassifier(self):
@@ -503,7 +666,7 @@ class Compare:
     # Evaluate accuracy
     self.results.append([
       "XGBoostClassifier",
-      accuracy_score(self.y_test, y_pred),
+      metrics.accuracy_score(self.y_test, y_pred),
     ])
 
     #results = machine.evals_result()
@@ -568,7 +731,7 @@ class Compare:
     # Evaluate accuracy
     self.results.append([
       "XGBoostRegressor",
-      mean_squared_error(self.y_test, y_pred),
+      metrics.mean_squared_error(self.y_test, y_pred),
     ])
 
 if __name__ == "__main__":
@@ -576,6 +739,7 @@ if __name__ == "__main__":
   parser.add_argument('--dataset', required = True, choices = ['relax', 'skin'])
   parser.add_argument("--test_ratio", type = float, default = 0.2)
   parser.add_argument("--random_seed", type = int, default = 42)
+  parser.add_argument("--verbosity", type = int, default = 0)
   args = parser.parse_args()
 
   c = Compare(args)
