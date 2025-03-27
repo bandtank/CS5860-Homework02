@@ -36,11 +36,10 @@ class Compare:
 
   def __init__(self, args):
     """
-    Initialise the class and load the data.
+    Initialize the class and load the data.
     """
 
     ### Start initialization
-    print("Initializing...")
     time_start = time.time()
 
     self.args = args
@@ -104,11 +103,12 @@ class Compare:
 
       data = sorted(self.results["classifiers"], key = lambda d: float(d['Accuracy (%)']), reverse = True)
 
+      print()
       print(tabulate.tabulate(
         data,
         headers = "keys",
-        tablefmt = "pretty",
-        colalign=["left", "center", "center"],
+        colalign = ["left", "center", "center"],
+        floatfmt = "0.3f",
       ))
       print()
 
@@ -119,11 +119,15 @@ class Compare:
       self.KNeighborsRegressor()
       self.XGBRegressor()
 
+      data = sorted(self.results["regressors"], key = lambda d: float(d['MSE']), reverse = False)
+
+      print()
       print(tabulate.tabulate(
-        self.results["regressors"],
+        data,
         headers = "keys",
-        tablefmt = "pretty",
-        colalign=["left", "center", "center", "center", "center", "center"],
+        #tablefmt = "pretty",
+        colalign = ["left", "center", "center", "center", "center", "center"],
+        floatfmt = "0.3f",
       ))
 
   def NearestNeighbors(self):
@@ -206,8 +210,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy (%)": f"{correct_matches / 5 * 100:.2f}",
-      "Time (s)": f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": correct_matches / 5 * 100,
+      "Time (s)": time.time() - time_start,
     })
 
   def KNearestClassifier(self):
@@ -270,8 +274,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy (%)": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}",
-      "Time (s)": f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "Time (s)": time.time() - time_start,
     })
 
   def KNeighborsRegressor(self):
@@ -336,11 +340,11 @@ class Compare:
 
         self.results["regressors"].append({
           "Method": f"{name} ({weights})",
-          "MSE": f"{metrics.mean_squared_error(self.y_test, y_pred):.2f}",
-          "RMSE": f"{metrics.root_mean_squared_error(self.y_test, y_pred):.2f}",
-          "MAE": f"{metrics.mean_absolute_error(self.y_test, y_pred):.2f}",
-          "R^2": f"{metrics.r2_score(self.y_test, y_pred):.2f}",
-          "Time (s)": f"{time.time() - time_start:.4f}",
+          "MSE": metrics.mean_squared_error(self.y_test, y_pred),
+          "RMSE": metrics.root_mean_squared_error(self.y_test, y_pred),
+          "MAE": metrics.mean_absolute_error(self.y_test, y_pred),
+          "R^2": metrics.r2_score(self.y_test, y_pred),
+          "Time (s)": time.time() - time_start,
         })
 
   def SVC(self):
@@ -408,8 +412,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy (%)": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}",
-      "Time (s)": f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "Time (s)": time.time() - time_start,
     })
 
   def LinearSVC(self):
@@ -475,8 +479,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy (%)": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}",
-      "Time (s)": f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "Time (s)": time.time() - time_start,
     })
 
   def SGDClassifier(self):
@@ -557,8 +561,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy (%)": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}",
-      "Time (s)": f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "Time (s)": time.time() - time_start,
     })
 
   def RandomForests(self):
@@ -632,8 +636,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy (%)": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}",
-      "Time (s)": f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "Time (s)": time.time() - time_start,
     })
 
   def AdaBoost(self):
@@ -691,8 +695,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy (%)": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}",
-      "Time (s)": f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "Time (s)": time.time() - time_start,
     })
 
   def XGBClassifier(self):
@@ -785,8 +789,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy (%)": f"{metrics.accuracy_score(y_test, y_pred) * 100:.2f}",
-      "Time (s)" : f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": metrics.accuracy_score(y_test, y_pred) * 100,
+      "Time (s)" : time.time() - time_start,
     })
 
   def XGBRegressor(self):
@@ -865,11 +869,11 @@ class Compare:
 
     self.results["regressors"].append({
       "Method": name,
-      "MSE": f"{metrics.mean_squared_error(self.y_test, y_pred):.2f}",
-      "RMSE": f"{metrics.root_mean_squared_error(self.y_test, y_pred):.2f}",
-      "MAE": f"{metrics.mean_absolute_error(self.y_test, y_pred):.2f}",
-      "R^2": f"{metrics.r2_score(self.y_test, y_pred):.2f}",
-      "Time (s)": f"{time.time() - time_start:.4f}",
+      "MSE": metrics.mean_squared_error(self.y_test, y_pred),
+      "RMSE": metrics.root_mean_squared_error(self.y_test, y_pred),
+      "MAE": metrics.mean_absolute_error(self.y_test, y_pred),
+      "R^2": metrics.r2_score(self.y_test, y_pred),
+      "Time (s)": time.time() - time_start,
     })
 
 if __name__ == "__main__":
