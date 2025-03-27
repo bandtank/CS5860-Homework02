@@ -89,29 +89,42 @@ class Compare:
     Train and evaluate various models.
     """
 
-    self.NearestNeighbors()
-    self.KNearestClassifier()
-    self.KNeighborsRegressor()
-    self.SVC()
-    self.LinearSVC()
-    self.SGDClassifier()
-    self.RandomForests()
-    self.AdaBoost()
-    self.XGBClassifier()
-    self.XGBRegressor()
+    if self.args.classifiers or self.args.all:
+      print("#######################")
+      print("# Running Classifiers #")
+      print("#######################")
+      self.NearestNeighbors()
+      self.KNearestClassifier()
+      self.SVC()
+      self.LinearSVC()
+      self.SGDClassifier()
+      self.RandomForests()
+      self.AdaBoost()
+      self.XGBClassifier()
 
-    print(tabulate.tabulate(
-      self.results["regressors"],
-      headers = "keys",
-      tablefmt = "pretty",
-      colalign=["left", "center", "center", "center", "center", "center"],
-    ))
-    print(tabulate.tabulate(
-      self.results["classifiers"],
-      headers = "keys",
-      tablefmt = "pretty",
-      colalign=["left", "center", "center"],
-    ))
+      data = sorted(self.results["classifiers"], key = lambda d: float(d['Accuracy (%)']), reverse = True)
+
+      print(tabulate.tabulate(
+        data,
+        headers = "keys",
+        tablefmt = "pretty",
+        colalign=["left", "center", "center"],
+      ))
+      print()
+
+    if self.args.regressors or self.args.all:
+      print("######################")
+      print("# Running Regressors #")
+      print("######################")
+      self.KNeighborsRegressor()
+      self.XGBRegressor()
+
+      print(tabulate.tabulate(
+        self.results["regressors"],
+        headers = "keys",
+        tablefmt = "pretty",
+        colalign=["left", "center", "center", "center", "center", "center"],
+      ))
 
   def NearestNeighbors(self):
     """
@@ -136,7 +149,7 @@ class Compare:
 
     ### Initialize
     name = "Nearest Neighbors"
-    print(f"Running {name}...")
+    print(name)
     time_start = time.time()
 
     ### Create the model
@@ -193,8 +206,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy": f"{correct_matches / 5 * 100:.2f}%",
-      "Time": f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": f"{correct_matches / 5 * 100:.2f}",
+      "Time (s)": f"{time.time() - time_start:.4f}",
     })
 
   def KNearestClassifier(self):
@@ -219,8 +232,8 @@ class Compare:
     """
 
     ### Initialize
-    name = "K Nearest Neighbors Classifier"
-    print(f"Running {name}...")
+    name = "K Nearest Neighbors"
+    print(name)
     time_start = time.time()
 
     ### Create the model
@@ -257,8 +270,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}%",
-      "Time": f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}",
+      "Time (s)": f"{time.time() - time_start:.4f}",
     })
 
   def KNeighborsRegressor(self):
@@ -283,11 +296,11 @@ class Compare:
     """
 
     ### Initialize
-    name = "K Nearest Neighbors Regressor"
+    name = "K Nearest Neighbors"
     n_neighbors = 5
 
     for i, weights in enumerate(["uniform", "distance"]):
-        print(f"Running {name} (Weights = {weights})...")
+        print(f"{name} (Weights = {weights})")
         time_start = time.time()
 
         ### Create the model
@@ -327,7 +340,7 @@ class Compare:
           "RMSE": f"{metrics.root_mean_squared_error(self.y_test, y_pred):.2f}",
           "MAE": f"{metrics.mean_absolute_error(self.y_test, y_pred):.2f}",
           "R^2": f"{metrics.r2_score(self.y_test, y_pred):.2f}",
-          "Time": f"{time.time() - time_start:.4f}",
+          "Time (s)": f"{time.time() - time_start:.4f}",
         })
 
   def SVC(self):
@@ -360,7 +373,7 @@ class Compare:
 
     ### Initialize
     name = "SVC"
-    print(f"Running {name}...")
+    print(name)
     time_start = time.time()
 
     ### Create the model
@@ -395,8 +408,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}%",
-      "Time": f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}",
+      "Time (s)": f"{time.time() - time_start:.4f}",
     })
 
   def LinearSVC(self):
@@ -426,7 +439,7 @@ class Compare:
 
     ### Initialize
     name = "Linear SVC"
-    print(f"Running {name}...")
+    print(name)
     time_start = time.time()
 
     ### Create the model
@@ -462,8 +475,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}%",
-      "Time": f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}",
+      "Time (s)": f"{time.time() - time_start:.4f}",
     })
 
   def SGDClassifier(self):
@@ -510,8 +523,8 @@ class Compare:
     """
 
     ### Initialize
-    name = "SGD Classifier"
-    print(f"Running {name}...")
+    name = "SGD"
+    print(name)
     time_start = time.time()
 
     ### Create the model
@@ -544,8 +557,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}%",
-      "Time": f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}",
+      "Time (s)": f"{time.time() - time_start:.4f}",
     })
 
   def RandomForests(self):
@@ -581,8 +594,8 @@ class Compare:
     """
 
     ### Initialize
-    name = "Random Forest Classifier"
-    print(f"Running {name}...")
+    name = "Random Forests"
+    print(name)
     time_start = time.time()
 
     ### Create the model
@@ -619,8 +632,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}%",
-      "Time": f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}",
+      "Time (s)": f"{time.time() - time_start:.4f}",
     })
 
   def AdaBoost(self):
@@ -643,7 +656,7 @@ class Compare:
 
     ### Initialize
     name = "AdaBoost"
-    print(f"Running {name}...")
+    print(name)
     time_start = time.time()
 
     ### Create the model
@@ -678,8 +691,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}%",
-      "Time": f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}",
+      "Time (s)": f"{time.time() - time_start:.4f}",
     })
 
   def XGBClassifier(self):
@@ -721,8 +734,8 @@ class Compare:
     """
 
     ### Initialize
-    name = "XGBoost Classifier"
-    print(f"Running {name}...")
+    name = "XGBoost"
+    print(name)
     time_start = time.time()
 
     ### Create the model
@@ -772,8 +785,8 @@ class Compare:
 
     self.results["classifiers"].append({
       "Method": name,
-      "Accuracy": f"{metrics.accuracy_score(y_test, y_pred) * 100:.2f}%",
-      "Time" : f"{time.time() - time_start:.4f}",
+      "Accuracy (%)": f"{metrics.accuracy_score(y_test, y_pred) * 100:.2f}",
+      "Time (s)" : f"{time.time() - time_start:.4f}",
     })
 
   def XGBRegressor(self):
@@ -816,8 +829,8 @@ class Compare:
     """
 
     ### Initialize
-    name = "XGBoost Regressor"
-    print(f"Running {name}...")
+    name = "XGBoost"
+    print(name)
     time_start = time.time()
 
     ### Create the model
@@ -856,15 +869,20 @@ class Compare:
       "RMSE": f"{metrics.root_mean_squared_error(self.y_test, y_pred):.2f}",
       "MAE": f"{metrics.mean_absolute_error(self.y_test, y_pred):.2f}",
       "R^2": f"{metrics.r2_score(self.y_test, y_pred):.2f}",
-      "Time": f"{time.time() - time_start:.4f}",
+      "Time (s)": f"{time.time() - time_start:.4f}",
     })
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description = "Compare learning methods for homework 2")
+
   parser.add_argument('--dataset', required = True, choices = ['relax', 'skin'])
   parser.add_argument("--test_ratio", type = float, default = 0.2)
   parser.add_argument("--random_seed", type = int, default = 42)
   parser.add_argument("--verbosity", type = int, default = 0)
+  parser.add_argument("--regressors", action = "store_true", help = "Run regression models")
+  parser.add_argument("--classifiers", action = "store_true", help = "Run classification models")
+  parser.add_argument("--all", action = "store_true", help = "Run all models")
+
   args = parser.parse_args()
 
   c = Compare(args)
