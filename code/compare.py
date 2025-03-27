@@ -90,77 +90,103 @@ class Compare:
     """
 
     if self.args.classifiers or self.args.all:
-      print("Running Classifiers...")
-      self.NearestNeighbors()
-      self.KNearestClassifier() # n_neighbors, weights, leaf_size, p
-      self.SVC() # C, tol, gamma, kernel
-      self.LinearSVC() # C, tol, loss
-      self.SGDClassifier() # loss, alpha, tol
-      self.RandomForests() # max_depth, n_estimators
-      self.AdaBoost() # n_estimators, learning_rate
-      self.XGBClassifier() # max_depth, learning_rate, n_estimators
-      self.GaussianProcessClassifier(1.0 * RBF(1.0), random_state = 42),
-      self.QuadraticDiscriminantAnalysis() # priors, reg_param
-      self.GuassianNB()
-      self.DecisionTreeClassifier(max_depth=5, random_state = 42),
-      self.MLPClassifier(alpha = 1, max_iter = 1000, random_state = 42),
-
-      data = sorted(self.results["classifiers"], key = lambda d: float(d['Accuracy (%)']), reverse = True)
-
-      print()
-      print(tabulate.tabulate(
-        data,
-        headers = "keys",
-        colalign = ["left", "center", "center"],
-        floatfmt = "0.3f",
-      ))
-      print()
+      self.run_classifiers()
 
     if self.args.regressors or self.args.all:
-      print("Running Regressors...")
-      for weight in ["uniform", "distance"]:
-        for n_neighbors in [3, 5, 7]:
-          for leaf_size in [10, 20, 30]:
-            for p in [1, 2]:
-              self.KNeighborsRegressor(
-                n_neighbors = n_neighbors,
-                weights = weight,
-                leaf_size = leaf_size,
-                p = p
-              )
-      for max_depth in [2, 3, 4]:
-        for learning_rate in [0.1, 0.2, 0.3]:
-          for n_estimators in [100, 200, 300]:
-            for gamma in [0, 1, 2]:
-              self.XGBRegressor(
+      self.run_regressors()
+
+  def run_classifiers(self):
+    """
+    Train and evaluate various classification models.
+    """
+
+    print("Running Classifiers...")
+    #self.NearestNeighbors()
+    #self.KNearestClassifier() # n_neighbors, weights, leaf_size, p
+    #self.SVC() # C, tol, gamma, kernel
+    #self.LinearSVC() # C, tol, loss
+    #self.SGDClassifier() # loss, alpha, tol
+    #self.RandomForests() # max_depth, n_estimators
+    #self.AdaBoost() # n_estimators, learning_rate
+    for max_depth in [1, 2, 3, 4]:
+      for learning_rate in [0.1, 0.2, 0.3]:
+        for n_estimators in [100, 200, 300]:
+          for gamma in [0, 1, 2]:
+            for tree_method in ["hist", "exact", "approx"]:
+              self.XGBClassifier(
                 max_depth = max_depth,
                 learning_rate = learning_rate,
                 n_estimators = n_estimators,
                 gamma = gamma,
+                tree_method = tree_method,
                 random_state = self.args.random_seed,
               )
-      for C in [0.1, 0.5, 1.0]:
-        for tol in [0.0001, 0.001, 0.01]:
-          for max_iter in [100, 200, 300]:
-            for solver in ['lbfgs', 'liblinear', 'sag', 'saga', 'newton-cg']:
-              self.LogisticRegression(
-                C = C,
-                tol = tol,
-                max_iter = max_iter,
-                solver = solver,
-                random_state = self.args.random_seed,
-              )
+    #self.GaussianProcessClassifier(1.0 * RBF(1.0), random_state = 42),
+    #self.QuadraticDiscriminantAnalysis() # priors, reg_param
+    #self.GuassianNB()
+    #self.DecisionTreeClassifier(max_depth=5, random_state = 42),
+    #self.MLPClassifier(alpha = 1, max_iter = 1000, random_state = 42),
 
-      data = sorted(self.results["regressors"], key = lambda d: float(d['MSE']), reverse = False)
+    data = sorted(self.results["classifiers"], key = lambda d: float(d['Accuracy (%)']), reverse = True)
 
-      print()
-      print(tabulate.tabulate(
-        data,
-        headers = "keys",
-        #tablefmt = "pretty",
-        colalign = ["left", "center", "center", "center", "center", "center"],
-        floatfmt = "0.3f",
-      ))
+    print()
+    print(tabulate.tabulate(
+      data,
+      headers = "keys",
+      colalign = ["left", "center", "center"],
+      floatfmt = "0.3f",
+    ))
+    print()
+
+  def run_regressors(self):
+    """
+    Train and evaluate various regression models.
+    """
+
+    print("Running Regressors...")
+    for weight in ["uniform", "distance"]:
+      for n_neighbors in [3, 5, 7]:
+        for leaf_size in [10, 20, 30]:
+          for p in [1, 2]:
+            self.KNeighborsRegressor(
+              n_neighbors = n_neighbors,
+              weights = weight,
+              leaf_size = leaf_size,
+              p = p
+            )
+    for max_depth in [2, 3, 4]:
+      for learning_rate in [0.1, 0.2, 0.3]:
+        for n_estimators in [100, 200, 300]:
+          for gamma in [0, 1, 2]:
+            self.XGBRegressor(
+              max_depth = max_depth,
+              learning_rate = learning_rate,
+              n_estimators = n_estimators,
+              gamma = gamma,
+              random_state = self.args.random_seed,
+            )
+    for C in [0.1, 0.5, 1.0]:
+      for tol in [0.0001, 0.001, 0.01]:
+        for max_iter in [100, 200, 300]:
+          for solver in ['lbfgs', 'liblinear', 'sag', 'saga', 'newton-cg']:
+            self.LogisticRegression(
+              C = C,
+              tol = tol,
+              max_iter = max_iter,
+              solver = solver,
+              random_state = self.args.random_seed,
+            )
+
+    data = sorted(self.results["regressors"], key = lambda d: float(d['MSE']), reverse = False)
+
+    print()
+    print(tabulate.tabulate(
+      data,
+      headers = "keys",
+      #tablefmt = "pretty",
+      colalign = ["left", "center", "center", "center", "center", "center"],
+      floatfmt = "0.3f",
+    ))
 
   def NearestNeighbors(self):
     """
@@ -808,7 +834,7 @@ class Compare:
       "Configuration": f"C={C}, tol={tol:0.4f}, mxitr={max_iter}, solver={solver}, rndst={random_state}",
     })
 
-  def XGBClassifier(self):
+  def XGBClassifier(self, max_depth = 3, learning_rate = 0.1, n_estimators = 100, gamma = 0, random_state = 42, tree_method = "hist"):
     """
     XGBClassifier is an ensemble technique that uses multiple decision
     trees to classify the target values.
@@ -848,14 +874,21 @@ class Compare:
 
     ### Initialize
     name = "XGBoost"
-    print(name)
+    if self.args.verbosity > 0:
+      print(name)
+
     time_start = time.time()
 
     ### Create the model
     time_previous = time_start
 
     machine = xgboost.XGBClassifier(
-      tree_method = "hist",
+      tree_method = tree_method,
+      max_depth = max_depth,
+      learning_rate = learning_rate,
+      n_estimators = n_estimators,
+      gamma = gamma,
+      random_state = random_state,
       early_stopping_rounds = 20,
       verbosity = 0,
     )
@@ -900,6 +933,7 @@ class Compare:
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(y_test, y_pred) * 100,
       "Time (s)" : time.time() - time_start,
+      "Configuration": f"mxdpth={max_depth}, lrate={learning_rate:0.3f}, n_est={n_estimators}, gamma={gamma:0.3f}, rndst={random_state}, trmeth={tree_method}",
     })
 
   def XGBRegressor(self, max_depth = 3, learning_rate = 0.1, n_estimators = 100, gamma = 0, random_state = 42):
