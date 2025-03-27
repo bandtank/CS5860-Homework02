@@ -80,8 +80,9 @@ class Compare:
       print(f"  {time.time() - time_previous:.4f}  Time to normalize data")
 
     ### Finalize
-    print(f"  {time.time() - time_previous:.4f}  Total time to initialize")
-    print()
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Total time to initialize")
+      print()
 
   def run(self):
     """
@@ -89,17 +90,20 @@ class Compare:
     """
 
     if self.args.classifiers or self.args.all:
-      print("#######################")
-      print("# Running Classifiers #")
-      print("#######################")
+      print("Running Classifiers...")
       self.NearestNeighbors()
-      self.KNearestClassifier()
-      self.SVC()
-      self.LinearSVC()
-      self.SGDClassifier()
-      self.RandomForests()
-      self.AdaBoost()
-      self.XGBClassifier()
+      self.KNearestClassifier() # n_neighbors, weights, leaf_size, p
+      self.SVC() # C, tol, gamma, kernel
+      self.LinearSVC() # C, tol, loss
+      self.SGDClassifier() # loss, alpha, tol
+      self.RandomForests() # max_depth, n_estimators
+      self.AdaBoost() # n_estimators, learning_rate
+      self.XGBClassifier() # max_depth, learning_rate, n_estimators
+      self.GaussianProcessClassifier(1.0 * RBF(1.0), random_state = 42),
+      self.QuadraticDiscriminantAnalysis() # priors, reg_param
+      self.GuassianNB()
+      self.DecisionTreeClassifier(max_depth=5, random_state = 42),
+      self.MLPClassifier(alpha = 1, max_iter = 1000, random_state = 42),
 
       data = sorted(self.results["classifiers"], key = lambda d: float(d['Accuracy (%)']), reverse = True)
 
@@ -113,11 +117,33 @@ class Compare:
       print()
 
     if self.args.regressors or self.args.all:
-      print("######################")
-      print("# Running Regressors #")
-      print("######################")
-      self.KNeighborsRegressor()
-      self.XGBRegressor()
+      print("Running Regressors...")
+      for weight in ["uniform", "distance"]:
+        for n_neighbors in [3, 5, 7]:
+          for leaf_size in [10, 20, 30]:
+            for p in [1, 2]:
+              self.KNeighborsRegressor(
+                n_neighbors = n_neighbors,
+                weights = weight,
+                leaf_size = leaf_size,
+                p = p
+              )
+      for max_depth in [2, 3, 4]:
+        for learning_rate in [0.1, 0.2, 0.3]:
+          for n_estimators in [100, 200, 300]:
+            for gamma in [0, 1, 2]:
+              self.XGBRegressor(
+                max_depth = max_depth,
+                learning_rate = learning_rate,
+                n_estimators = n_estimators,
+                gamma = gamma,
+                random_state = 42
+              )
+      for C in [0.1, 0.5, 1.0]:
+        for tol in [0.0001, 0.001, 0.01]:
+          for max_iter in [100, 200, 300]:
+            for solver in ['lbfgs', 'liblinear', 'sag', 'saga', 'newton-cg']:
+              self.LogisticRegression(C = C, tol = tol, max_iter = max_iter, solver = solver, random_state = 42)
 
       data = sorted(self.results["regressors"], key = lambda d: float(d['MSE']), reverse = False)
 
@@ -278,7 +304,7 @@ class Compare:
       "Time (s)": time.time() - time_start,
     })
 
-  def KNeighborsRegressor(self):
+  def KNeighborsRegressor(self, n_neighbors = 5, weights = "uniform", leaf_size = 30, p = 2):
     """
     KNN Regressor is a supervised technique that attempts to predict
     the value of a target data point by computing the local average.
@@ -301,51 +327,53 @@ class Compare:
 
     ### Initialize
     name = "K Nearest Neighbors"
-    n_neighbors = 5
+    if self.args.verbosity > 0:
+      print(name)
 
-    for i, weights in enumerate(["uniform", "distance"]):
-        print(f"{name} (Weights = {weights})")
-        time_start = time.time()
+    time_start = time.time()
 
-        ### Create the model
-        time_previous = time_start
+    ### Create the model
+    time_previous = time_start
 
-        machine = neighbors.KNeighborsRegressor(
-          n_neighbors,
-          weights = weights
-        )
+    machine = neighbors.KNeighborsRegressor(
+      n_neighbors = n_neighbors,
+      weights = weights,
+      leaf_size = leaf_size,
+      p = p,
+    )
 
-        if self.args.verbosity > 0:
-          print(f"  {time.time() - time_previous:.4f}  Time to create model")
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to create model")
 
-        ### Fit to training data
-        time_previous = time.time()
+    ### Fit to training data
+    time_previous = time.time()
 
-        machine.fit(self.X_train, self.y_train)
+    machine.fit(self.X_train, self.y_train)
 
-        if self.args.verbosity > 0:
-          print(f"  {time.time() - time_previous:.4f}  Time to train model")
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to train model")
 
-        ### Make predictions
-        time_previous = time.time()
+    ### Make predictions
+    time_previous = time.time()
 
-        y_pred = machine.predict(self.X_test)
+    y_pred = machine.predict(self.X_test)
 
-        if self.args.verbosity > 0:
-          print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
 
-        ### Finalize
-        if args.verbosity > 0:
-          print()
+    ### Finalize
+    if args.verbosity > 0:
+      print()
 
-        self.results["regressors"].append({
-          "Method": f"{name} ({weights})",
-          "MSE": metrics.mean_squared_error(self.y_test, y_pred),
-          "RMSE": metrics.root_mean_squared_error(self.y_test, y_pred),
-          "MAE": metrics.mean_absolute_error(self.y_test, y_pred),
-          "R^2": metrics.r2_score(self.y_test, y_pred),
-          "Time (s)": time.time() - time_start,
-        })
+    self.results["regressors"].append({
+      "Method": f"{name} ({weights})",
+      "MSE": metrics.mean_squared_error(self.y_test, y_pred),
+      "RMSE": metrics.root_mean_squared_error(self.y_test, y_pred),
+      "MAE": metrics.mean_absolute_error(self.y_test, y_pred),
+      "R^2": metrics.r2_score(self.y_test, y_pred),
+      "Time (s)": time.time() - time_start,
+      "Configuration": f"nnghbrs={n_neighbors}, weights={weights}, lfsz={leaf_size}, p={p}",
+    })
 
   def SVC(self):
     """
@@ -699,6 +727,81 @@ class Compare:
       "Time (s)": time.time() - time_start,
     })
 
+  def LogisticRegression(self, C = 1.0, tol = 0.0001, max_iter = 100, solver = 'lbfgs', random_state = 42):
+    """
+    Logistic Regression is a supervised technique that attempts to
+    predict the class of a target data point by computing the local
+    probability.
+
+    https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
+    Default Parameters:
+      LogisticRegression(
+        *,
+        penalty = 'l2',
+        dual = False,
+        tol = 0.0001,
+        C = 1.0,
+        fit_intercept = True,
+        intercept_scaling = 1,
+        class_weight = None,
+        random_state = None,
+        solver = 'lbfgs',
+        max_iter = 100,
+        multi_class = 'auto',
+        verbose = 0,
+        warm_start = False,
+        n_jobs = None,
+        l1_ratio = None
+      )
+    """
+    ### Initialize
+    name = "Logistic"
+    if self.args.verbosity > 0:
+      print(name)
+
+    time_start = time.time()
+
+    ### Create the model
+    time_previous = time_start
+
+    machine = linear_model.LogisticRegression(
+      max_iter = 1000,
+      solver = 'lbfgs'
+    )
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to create model")
+
+    ### Fit to training data
+    time_previous = time_start
+
+    machine.fit(self.X_train, self.y_train)
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to train model")
+
+    ### Make predictions
+    time_previous = time.time()
+
+    y_pred = machine.predict(self.X_test)
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
+
+    ### Finalize
+    if args.verbosity > 0:
+      print()
+
+    self.results["regressors"].append({
+      "Method": name,
+      "MSE": metrics.mean_squared_error(self.y_test, y_pred),
+      "RMSE": metrics.root_mean_squared_error(self.y_test, y_pred),
+      "MAE": metrics.mean_absolute_error(self.y_test, y_pred),
+      "R^2": metrics.r2_score(self.y_test, y_pred),
+      "Time (s)": time.time() - time_start,
+      "Configuration": f"C={C}, tol={tol:0.4f}, mxitr={max_iter}, solver={solver}, rndst={random_state}",
+    })
+
   def XGBClassifier(self):
     """
     XGBClassifier is an ensemble technique that uses multiple decision
@@ -793,7 +896,7 @@ class Compare:
       "Time (s)" : time.time() - time_start,
     })
 
-  def XGBRegressor(self):
+  def XGBRegressor(self, max_depth = 3, learning_rate = 0.1, n_estimators = 100, gamma = 0, random_state = 42):
     """
     XGBRegressor is an ensemble technique that uses multiple decision
     trees to predict the target values.
@@ -834,14 +937,20 @@ class Compare:
 
     ### Initialize
     name = "XGBoost"
-    print(name)
+    if self.args.verbosity > 0:
+      print(name)
+
     time_start = time.time()
 
     ### Create the model
     time_previous = time_start
 
     machine = xgboost.XGBRegressor(
-      n_estimators = 100,
+      max_depth = max_depth,
+      learning_rate = learning_rate,
+      n_estimators = n_estimators,
+      gamma = gamma,
+      random_state = random_state,
     )
 
     if self.args.verbosity > 0:
@@ -874,6 +983,7 @@ class Compare:
       "MAE": metrics.mean_absolute_error(self.y_test, y_pred),
       "R^2": metrics.r2_score(self.y_test, y_pred),
       "Time (s)": time.time() - time_start,
+      "Configuration": f"mxdpth={max_depth}, lrate={learning_rate:0.3f}, n_est={n_estimators}, gamma={gamma:0.3f}, rndst={random_state}",
     })
 
 if __name__ == "__main__":
