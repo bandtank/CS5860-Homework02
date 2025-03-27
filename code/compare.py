@@ -137,13 +137,19 @@ class Compare:
                 learning_rate = learning_rate,
                 n_estimators = n_estimators,
                 gamma = gamma,
-                random_state = 42
+                random_state = self.args.random_seed,
               )
       for C in [0.1, 0.5, 1.0]:
         for tol in [0.0001, 0.001, 0.01]:
           for max_iter in [100, 200, 300]:
             for solver in ['lbfgs', 'liblinear', 'sag', 'saga', 'newton-cg']:
-              self.LogisticRegression(C = C, tol = tol, max_iter = max_iter, solver = solver, random_state = 42)
+              self.LogisticRegression(
+                C = C,
+                tol = tol,
+                max_iter = max_iter,
+                solver = solver,
+                random_state = self.args.random_seed,
+              )
 
       data = sorted(self.results["regressors"], key = lambda d: float(d['MSE']), reverse = False)
 
