@@ -11,6 +11,7 @@ Author: Anthony Andriano
 """
 
 import argparse
+import tabulate
 import time
 
 import numpy as np
@@ -35,12 +36,18 @@ class Compare:
 
   def __init__(self, args):
     """
-    Load the dataset based on the user's choice.
+    Initialise the class and load the data.
     """
+
     ### Start initialization
     print("Initializing...")
-    self.args = args
     time_start = time.time()
+
+    self.args = args
+    self.results = {
+      "regressors": [],
+      "classifiers": [],
+    }
 
     ### Get the data based on the user's input
     time_previous = time_start
@@ -73,7 +80,7 @@ class Compare:
     if self.args.verbosity > 0:
       print(f"  {time.time() - time_previous:.4f}  Time to normalize data")
 
-    ### Finalize initialization
+    ### Finalize
     print(f"  {time.time() - time_previous:.4f}  Total time to initialize")
     print()
 
@@ -82,50 +89,34 @@ class Compare:
     Train and evaluate various models.
     """
 
-    # Nearest Neighbors is an unsupervised technique that finds the
-    # k-nearest neighbors of a target data point.
     self.NearestNeighbors()
-
-    # KNN Classifier is a supervised technique that attempts to predict
-    # the class of a target data point by computing the local probability.
     self.KNearestClassifier()
-
-    # KNN Regressor is a supervised technique that attempts to predict
-    # the value of a target data point by computing the local average.
     self.KNeighborsRegressor()
-
-    # Support Vector Classifier is a supervised technique that attempts
-    # to find the hyperplane that best separates the classes.
     self.SVC()
-
-    # Linear Support Vector Classifier is a supervised technique that
-    # attempts to find the hyperplane that best separates the classes.
     self.LinearSVC()
-
-    # Stochastic Gradient Descent Classifier is a supervised technique
-    # that attempts to find the hyperplane that best separates the classes.
     self.SGDClassifier()
-    return
-
-    # Random Forests is an ensemble technique that uses multiple decision
-    # trees to predict the target values.
     self.RandomForests()
-
-    # AdaBoost is an ensemble technique that uses multiple weak learners
-    # to predict the target values.
     self.AdaBoost()
-
-    # XGBClassifier is an ensemble technique that uses multiple decision trees
-    # to classify the target values.
     self.XGBClassifier()
-
-    # XGBRegressor is an ensemble technique that uses multiple decision trees
-    # to predict the target values.
     self.XGBRegressor()
+
+    print(tabulate.tabulate(
+      self.results["regressors"],
+      headers = "keys",
+      tablefmt = "pretty",
+      colalign=["left", "center", "center", "center", "center", "center"],
+    ))
+    print(tabulate.tabulate(
+      self.results["classifiers"],
+      headers = "keys",
+      tablefmt = "pretty",
+      colalign=["left", "center", "center"],
+    ))
 
   def NearestNeighbors(self):
     """
-    Use the Nearest Neighbors model to find the k-nearest neighbors.
+    Nearest Neighbors is an unsupervised technique that finds the
+    k-nearest neighbors of a target data point.
 
     https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.NearestNeighbors.html#sklearn.neighbors.NearestNeighbors
 
@@ -144,7 +135,8 @@ class Compare:
     """
 
     ### Initialize
-    print("Inititalizing Nearest Neighbors...")
+    name = "Nearest Neighbors"
+    print(f"Running {name}...")
     time_start = time.time()
 
     ### Create the model
@@ -157,7 +149,7 @@ class Compare:
     )
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to create model")
+      print(f"  {time.time() - time_previous:.4f}  Time to create model")
 
     ### Fit to training data
     time_previous = time.time()
@@ -165,7 +157,7 @@ class Compare:
     machine.fit(self.X_train)
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to train model")
+      print(f"  {time.time() - time_previous:.4f}  Time to train model")
 
     ### Query the model
     time_previous = time.time()
@@ -173,7 +165,7 @@ class Compare:
     distances, indices = machine.kneighbors(self.X_test[:10])
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to query model")
+      print(f"  {time.time() - time_previous:.4f}  Time to query model")
 
     ### Evaluate the model
     time_previous = time.time()
@@ -185,13 +177,11 @@ class Compare:
     correct_matches = np.intersect1d(indices, brute_force_distances).size
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to brute force")
+      print(f"  {time.time() - time_previous:.4f}  Time to brute force")
 
-    ### Print the results
-    print(f"  {time.time() - time_start:.4f}  Total Nearest Neighbors time ")
-
-    accuracy = correct_matches / 5 # Percentage of correct nearest neighbors
-    print(f"Accuracy of nearest neighbors: {accuracy * 100:.2f}%")
+    ### Finalize
+    if args.verbosity > 0:
+      print()
 
     # Print the indices of nearest neighbors and their distances
     if self.args.verbosity > 1:
@@ -200,12 +190,17 @@ class Compare:
           print(f"  Nearest neighbors (indices): {idx}")
           print(f"  Distances: {d}")
           print()
-    else:
-      print()
+
+    self.results["classifiers"].append({
+      "Method": name,
+      "Accuracy": f"{correct_matches / 5 * 100:.2f}%",
+      "Time": f"{time.time() - time_start:.4f}",
+    })
 
   def KNearestClassifier(self):
     """
-    Use the k-Nearest Neighbors classifier to predict the target values.
+    KNN Classifier is a supervised technique that attempts to predict
+    the class of a target data point by computing the local probability.
 
     https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html#sklearn.neighbors.KNeighborsClassifier
 
@@ -224,7 +219,8 @@ class Compare:
     """
 
     ### Initialize
-    print("Inititalizing K Nearest Neighbors Classifier...")
+    name = "K Nearest Neighbors Classifier"
+    print(f"Running {name}...")
     time_start = time.time()
 
     ### Create the model
@@ -237,7 +233,7 @@ class Compare:
     )
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to create model")
+      print(f"  {time.time() - time_previous:.4f}  Time to create model")
 
     ### Fit to training data
     time_previous = time.time()
@@ -245,7 +241,7 @@ class Compare:
     machine.fit(self.X_train, self.y_train)
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to train model")
+      print(f"  {time.time() - time_previous:.4f}  Time to train model")
 
     ### Make predictions
     time_previous = time.time()
@@ -253,18 +249,22 @@ class Compare:
     y_pred = machine.predict(self.X_test)
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to generate predictions")
+      print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
 
-    ### Print the results
-    print(f"  {time.time() - time_start:.4f}  Total K Nearest Neighbors Classifier time")
+    ### Finalize
+    if args.verbosity > 0:
+      print()
 
-    accuracy = metrics.accuracy_score(self.y_test, y_pred)
-    print(f"Accuracy of K Nearest Neighbors Classifier: {accuracy * 100:.2f}%")
-    print()
+    self.results["classifiers"].append({
+      "Method": name,
+      "Accuracy": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}%",
+      "Time": f"{time.time() - time_start:.4f}",
+    })
 
   def KNeighborsRegressor(self):
     """
-    Use the k-Nearest Neighbors regression model to predict the target values.
+    KNN Regressor is a supervised technique that attempts to predict
+    the value of a target data point by computing the local average.
 
     https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsRegressor.html#sklearn.neighbors.KNeighborsRegressor
 
@@ -283,10 +283,11 @@ class Compare:
     """
 
     ### Initialize
+    name = "K Nearest Neighbors Regressor"
     n_neighbors = 5
 
     for i, weights in enumerate(["uniform", "distance"]):
-        print(f"Inititalizing K Nearest Neighbors Regressor: {weights}...")
+        print(f"Running {name} (Weights = {weights})...")
         time_start = time.time()
 
         ### Create the model
@@ -298,7 +299,7 @@ class Compare:
         )
 
         if self.args.verbosity > 0:
-          print(f"  {time.time() - time_previous:.4f}  Total time to create model")
+          print(f"  {time.time() - time_previous:.4f}  Time to create model")
 
         ### Fit to training data
         time_previous = time.time()
@@ -306,7 +307,7 @@ class Compare:
         machine.fit(self.X_train, self.y_train)
 
         if self.args.verbosity > 0:
-          print(f"  {time.time() - time_previous:.4f}  Total time to train model")
+          print(f"  {time.time() - time_previous:.4f}  Time to train model")
 
         ### Make predictions
         time_previous = time.time()
@@ -314,18 +315,25 @@ class Compare:
         y_pred = machine.predict(self.X_test)
 
         if self.args.verbosity > 0:
-          print(f"  {time.time() - time_previous:.4f}  Total time to generate predictions")
+          print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
 
-        ### Print the results
-        print(f"  {time.time() - time_start:.4f}  Total K Nearest Neighbors Regressor time ")
+        ### Finalize
+        if args.verbosity > 0:
+          print()
 
-        rmse = metrics.mean_squared_error(self.y_test, y_pred)
-        print(f"RMSE of K Nearest Neighbors Regressor: {rmse:.4f}")
-        print()
+        self.results["regressors"].append({
+          "Method": f"{name} ({weights})",
+          "MSE": f"{metrics.mean_squared_error(self.y_test, y_pred):.2f}",
+          "RMSE": f"{metrics.root_mean_squared_error(self.y_test, y_pred):.2f}",
+          "MAE": f"{metrics.mean_absolute_error(self.y_test, y_pred):.2f}",
+          "R^2": f"{metrics.r2_score(self.y_test, y_pred):.2f}",
+          "Time": f"{time.time() - time_start:.4f}",
+        })
 
   def SVC(self):
     """
-    Use the Support Vector Classifier to predict the target values.
+    Support Vector Classifier is a supervised technique that attempts
+    to find the hyperplane that best separates the classes.
 
     https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC
 
@@ -351,7 +359,8 @@ class Compare:
     """
 
     ### Initialize
-    print(f"Inititalizing SVC...")
+    name = "SVC"
+    print(f"Running {name}...")
     time_start = time.time()
 
     ### Create the model
@@ -362,7 +371,7 @@ class Compare:
     )
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to create model")
+      print(f"  {time.time() - time_previous:.4f}  Time to create model")
 
     ### Fit to training data
     time_previous = time_start
@@ -370,7 +379,7 @@ class Compare:
     machine.fit(self.X_train, self.y_train)
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to train model")
+      print(f"  {time.time() - time_previous:.4f}  Time to train model")
 
     ### Make predictions
     time_previous = time.time()
@@ -378,18 +387,22 @@ class Compare:
     y_pred = machine.predict(self.X_test)
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to generate predictions")
+      print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
 
-    ### Print the results
-    print(f"  {time.time() - time_start:.4f}  Total SVC time")
+    ### Finalize
+    if args.verbosity > 0:
+      print()
 
-    accuracy = metrics.accuracy_score(self.y_test, y_pred)
-    print(f"Accuracy of SVC: {accuracy * 100:.2f}%")
-    print()
+    self.results["classifiers"].append({
+      "Method": name,
+      "Accuracy": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}%",
+      "Time": f"{time.time() - time_start:.4f}",
+    })
 
   def LinearSVC(self):
     """
-    Use the Linear Support Vector Classifier to predict the target values.
+    Linear Support Vector Classifier is a supervised technique that
+    attempts to find the hyperplane that best separates the classes.
 
     https://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVC.html
 
@@ -412,7 +425,8 @@ class Compare:
     """
 
     ### Initialize
-    print(f"Inititalizing LinearSVC...")
+    name = "Linear SVC"
+    print(f"Running {name}...")
     time_start = time.time()
 
     ### Create the model
@@ -424,7 +438,7 @@ class Compare:
     )
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to create model")
+      print(f"  {time.time() - time_previous:.4f}  Time to create model")
 
     ### Fit to training data
     time_previous = time_start
@@ -432,7 +446,7 @@ class Compare:
     machine.fit(self.X_train, self.y_train)
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to train model")
+      print(f"  {time.time() - time_previous:.4f}  Time to train model")
 
     ### Make predictions
     time_previous = time.time()
@@ -440,18 +454,22 @@ class Compare:
     y_pred = machine.predict(self.X_test)
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to generate predictions")
+      print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
 
     ### Print the results
-    print(f"  {time.time() - time_start:.4f}  Total LinearSVC time")
+    if args.verbosity > 0:
+      print()
 
-    accuracy = metrics.accuracy_score(self.y_test, y_pred)
-    print(f"Accuracy of LinearSVC: {accuracy * 100:.2f}%")
-    print()
+    self.results["classifiers"].append({
+      "Method": name,
+      "Accuracy": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}%",
+      "Time": f"{time.time() - time_start:.4f}",
+    })
 
   def SGDClassifier(self):
     """
-    Use the Stochastic Gradient Descent classifier to predict the target values.
+    Stochastic Gradient Descent Classifier is a supervised technique
+    that attempts to find the hyperplane that best separates the classes.
 
     https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.SGDClassifier.html#sklearn.linear_model.SGDClassifier
 
@@ -492,7 +510,8 @@ class Compare:
     """
 
     ### Initialize
-    print(f"Inititalizing SGD Classifier...")
+    name = "SGD Classifier"
+    print(f"Running {name}...")
     time_start = time.time()
 
     ### Create the model
@@ -501,7 +520,7 @@ class Compare:
     machine = linear_model.SGDClassifier()
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to create model")
+      print(f"  {time.time() - time_previous:.4f}  Time to create model")
 
     ### Fit to training data
     time_previous = time_start
@@ -509,7 +528,7 @@ class Compare:
     machine.fit(self.X_train, self.y_train)
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to train model")
+      print(f"  {time.time() - time_previous:.4f}  Time to train model")
 
     ### Make predictions
     time_previous = time.time()
@@ -517,18 +536,22 @@ class Compare:
     y_pred = machine.predict(self.X_test)
 
     if self.args.verbosity > 0:
-      print(f"  {time.time() - time_previous:.4f}  Total time to generate predictions")
+      print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
 
-    ### Print the results
-    print(f"  {time.time() - time_start:.4f}  Total SGD Classifier")
+    ### Finalize
+    if args.verbosity > 0:
+      print()
 
-    accuracy = metrics.accuracy_score(self.y_test, y_pred)
-    print(f"Accuracy of SVC: {accuracy * 100:.2f}%")
-    print()
+    self.results["classifiers"].append({
+      "Method": name,
+      "Accuracy": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}%",
+      "Time": f"{time.time() - time_start:.4f}",
+    })
 
   def RandomForests(self):
     """
-    Use the Random Forests model to predict the target values.
+    Random Forests is an ensemble technique that uses multiple decision
+    trees to predict the target values.
 
     https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
 
@@ -557,27 +580,53 @@ class Compare:
       )
     """
 
+    ### Initialize
+    name = "Random Forest Classifier"
+    print(f"Running {name}...")
+    time_start = time.time()
+
+    ### Create the model
+    time_previous = time_start
+
     machine = ensemble.RandomForestClassifier(
       n_estimators = 100,
       max_depth = 2,
       random_state = 0
     )
 
-    # Train the model
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to create model")
+
+    ### Fit to training data
+    time_previous = time_start
+
     machine.fit(self.X_train, self.y_train)
 
-    # Predict the target values
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to train model")
+
+    ### Make predictions
+    time_previous = time.time()
+
     y_pred = machine.predict(self.X_test)
 
-    # Evaluate accuracy
-    self.results.append([
-      "RandomForestClassifier",
-      metrics.accuracy_score(self.y_test, y_pred),
-    ])
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
+
+    ### Finalize
+    if args.verbosity > 0:
+      print()
+
+    self.results["classifiers"].append({
+      "Method": name,
+      "Accuracy": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}%",
+      "Time": f"{time.time() - time_start:.4f}",
+    })
 
   def AdaBoost(self):
     """
-    Use the AdaBoost model to predict the target values.
+    AdaBoost is an ensemble technique that uses multiple weak learners
+    to predict the target values.
 
     https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.AdaBoostClassifier.html
 
@@ -592,25 +641,51 @@ class Compare:
       )
     """
 
+    ### Initialize
+    name = "AdaBoost"
+    print(f"Running {name}...")
+    time_start = time.time()
+
+    ### Create the model
+    time_previous = time_start
+
     machine = ensemble.AdaBoostClassifier(
       n_estimators = 100
     )
 
-    # Train the model
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to create model")
+
+    ### Fit to training data
+    time_previous = time_start
+
     machine.fit(self.X_train, self.y_train)
 
-    # Predict the target values
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to train model")
+
+    ### Make predictions
+    time_previous = time.time()
+
     y_pred = machine.predict(self.X_test)
 
-    # Evaluate accuracy
-    self.results.append([
-      "AdaBoostClassifier",
-      metrics.accuracy_score(self.y_test, y_pred),
-    ])
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
+
+    ### Finalize
+    if args.verbosity > 0:
+      print()
+
+    self.results["classifiers"].append({
+      "Method": name,
+      "Accuracy": f"{metrics.accuracy_score(self.y_test, y_pred) * 100:.2f}%",
+      "Time": f"{time.time() - time_start:.4f}",
+    })
 
   def XGBClassifier(self):
     """
-    Use the XGBClassifier to classify the target values.
+    XGBClassifier is an ensemble technique that uses multiple decision
+    trees to classify the target values.
 
     https://xgboost.readthedocs.io/en/latest/python/python_api.html
 
@@ -645,11 +720,25 @@ class Compare:
         validate_parameters = True
     """
 
+    ### Initialize
+    name = "XGBoost Classifier"
+    print(f"Running {name}...")
+    time_start = time.time()
+
+    ### Create the model
+    time_previous = time_start
+
     machine = xgboost.XGBClassifier(
       tree_method = "hist",
       early_stopping_rounds = 20,
       verbosity = 0,
     )
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to create model")
+
+    ### Encode the target values
+    time_previous = time.time()
 
     le = LabelEncoder()
     y_train = le.fit_transform(self.y_train)
@@ -657,32 +746,40 @@ class Compare:
 
     eval_set = [(self.X_train, y_train), (self.X_test, y_test)]
 
-    # Train the model
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to encode values")
+
+    ### Fit to training data
+    time_previous = time_start
+
+    #machine.fit(self.X_train, self.y_train, verbose = False)
     machine.fit(self.X_train, y_train, eval_set = eval_set, verbose = False)
 
-    # Predict the target values
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to train model")
+
+    ### Make predictions
+    time_previous = time.time()
+
     y_pred = machine.predict(self.X_test)
 
-    # Evaluate accuracy
-    self.results.append([
-      "XGBoostClassifier",
-      metrics.accuracy_score(self.y_test, y_pred),
-    ])
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
 
-    #results = machine.evals_result()
+    ### Finalize
+    if args.verbosity > 0:
+      print()
 
-    #plt.figure(figsize=(10,7))
-    #plt.plot(results["validation_0"]["logloss"], label="Training loss")
-    #plt.plot(results["validation_1"]["logloss"], label="Validation loss")
-    #plt.axvline(machine.best_iteration, color="gray", label="Optimal tree number")
-    #plt.xlabel("Number of trees")
-    #plt.ylabel("Loss")
-    #plt.legend()
-    #plt.show()
+    self.results["classifiers"].append({
+      "Method": name,
+      "Accuracy": f"{metrics.accuracy_score(y_test, y_pred) * 100:.2f}%",
+      "Time" : f"{time.time() - time_start:.4f}",
+    })
 
   def XGBRegressor(self):
     """
-    Use the XGBRegressor to predict the target values.
+    XGBRegressor is an ensemble technique that uses multiple decision
+    trees to predict the target values.
 
     https://xgboost.readthedocs.io/en/latest/python/python_api.html
 
@@ -718,21 +815,49 @@ class Compare:
       )
     """
 
+    ### Initialize
+    name = "XGBoost Regressor"
+    print(f"Running {name}...")
+    time_start = time.time()
+
+    ### Create the model
+    time_previous = time_start
+
     machine = xgboost.XGBRegressor(
       n_estimators = 100,
     )
 
-    # Train the model
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to create model")
+
+    ### Fit to training data
+    time_previous = time_start
+
     machine.fit(self.X_train, self.y_train)
 
-    # Predict the target values
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to train model")
+
+    ### Make predictions
+    time_previous = time.time()
+
     y_pred = machine.predict(self.X_test)
 
-    # Evaluate accuracy
-    self.results.append([
-      "XGBoostRegressor",
-      metrics.mean_squared_error(self.y_test, y_pred),
-    ])
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
+
+    ### Finalize
+    if args.verbosity > 0:
+      print()
+
+    self.results["regressors"].append({
+      "Method": name,
+      "MSE": f"{metrics.mean_squared_error(self.y_test, y_pred):.2f}",
+      "RMSE": f"{metrics.root_mean_squared_error(self.y_test, y_pred):.2f}",
+      "MAE": f"{metrics.mean_absolute_error(self.y_test, y_pred):.2f}",
+      "R^2": f"{metrics.r2_score(self.y_test, y_pred):.2f}",
+      "Time": f"{time.time() - time_start:.4f}",
+    })
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description = "Compare learning methods for homework 2")
