@@ -455,15 +455,12 @@ class Compare:
     if args.verbosity > 0:
       print()
 
+    configuration = f"n_neighbors={n_neighbors}, weights={weights}, algorithm={algorithm}, leaf_size={leaf_size}, p={p}"
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
-      "n_neighbors": n_neighbors,
-      "weights": weights,
-      "algorithm": algorithm,
-      "leaf_size": leaf_size,
-      "p": p,
+      "Configuration": configuration,
     })
 
   def KNeighborsRegressor(self, n_neighbors = 5, weights = "uniform", leaf_size = 30, p = 2):
@@ -527,6 +524,7 @@ class Compare:
     if args.verbosity > 0:
       print()
 
+    configuration = f"n_neighbors={n_neighbors}, weights={weights}, leaf_size={leaf_size}, p={p}"
     self.results["regressors"].append({
       "Method": f"{name} ({weights})",
       "MSE": metrics.mean_squared_error(self.y_test, y_pred),
@@ -534,10 +532,7 @@ class Compare:
       "MAE": metrics.mean_absolute_error(self.y_test, y_pred),
       "R^2": metrics.r2_score(self.y_test, y_pred),
       "Time (s)": time.time() - time_start,
-      "n_neighbors": n_neighbors,
-      "weights": weights,
-      "leaf_size": leaf_size,
-      "p": p,
+      "Configuration": configuration,
     })
 
   def SVC(self, C = 1.0, kernel = "linear", tol = 0.001, gamma = "scale", random_state = 42):
@@ -609,15 +604,12 @@ class Compare:
     if args.verbosity > 0:
       print()
 
+    configuration = f"C={C}, kernel={kernel}, tol={tol}, gamma={gamma}"
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
-      "C": C,
-      "kernel": kernel,
-      "tol": tol,
-      "gamma": gamma,
-      "random_state": random_state,
+      "Configuration": configuration,
     })
 
   def LinearSVC(self, loss = 'hinge', C = 1.0, tol = 0.0001, max_iter = 1000, random_state = 42):
@@ -686,10 +678,12 @@ class Compare:
     if args.verbosity > 0:
       print()
 
+    configuration = f"loss={loss}, C={C}, tol={tol}, max_iter={max_iter}"
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
+      "Configuration": configuration,
     })
 
   def SGDClassifier(self, loss = "hinge", alpha = 0.0001, tol = 0.001, random_state = 42):
@@ -775,14 +769,12 @@ class Compare:
     if args.verbosity > 0:
       print()
 
+    configuration = f"loss={loss}, alpha={alpha}, tol={tol}"
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
-      "loss": loss,
-      "alpha": alpha,
-      "tol": tol,
-      "random_state": random_state,
+      "Configuration": configuration,
     })
 
   def RandomForests(self, n_estimators = 100, max_depth = 2, bootstrap = True, random_state = 0):
@@ -857,14 +849,12 @@ class Compare:
     if args.verbosity > 0:
       print()
 
+    configuration = f"n_estimators={n_estimators}, max_depth={max_depth}, bootstrap={bootstrap}"
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
-      "n_estimators": n_estimators,
-      "max_depth": max_depth,
-      "bootstrap": bootstrap,
-      "random_state": random_state,
+      "Configuration": configuration,
     })
 
   def AdaBoost(self, n_estimators = 50, learning_rate = 1.0, random_state = 42):
@@ -924,13 +914,12 @@ class Compare:
     if args.verbosity > 0:
       print()
 
+    configuration = f"n_estimators={n_estimators}, learning_rate={learning_rate}"
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
-      "n_estimators": n_estimators,
-      "learning_rate": learning_rate,
-      "random_state": random_state,
+      "Configuration": configuration,
     })
 
   def LogisticRegression(self, C = 1.0, tol = 0.0001, max_iter = 100, solver = 'lbfgs', random_state = 42):
@@ -998,6 +987,7 @@ class Compare:
     if args.verbosity > 0:
       print()
 
+    configuration = f"C={C}, tol={tol}, max_iter={max_iter}, solver={solver}"
     self.results["regressors"].append({
       "Method": name,
       "MSE": metrics.mean_squared_error(self.y_test, y_pred),
@@ -1005,11 +995,7 @@ class Compare:
       "MAE": metrics.mean_absolute_error(self.y_test, y_pred),
       "R^2": metrics.r2_score(self.y_test, y_pred),
       "Time (s)": time.time() - time_start,
-      "C": C,
-      "tol": tol,
-      "max_iter": max_iter,
-      "solver": solver,
-      "random_state": random_state,
+      "Configuration": configuration,
     })
 
   def XGBClassifier(self, max_depth = 3, learning_rate = 0.1, n_estimators = 100, gamma = 0, random_state = 42, tree_method = "hist"):
@@ -1107,16 +1093,12 @@ class Compare:
     if args.verbosity > 0:
       print()
 
+    configuration = f"max_depth={max_depth}, learning_rate={learning_rate}, n_estimators={n_estimators}, gamma={gamma}, tree_method={tree_method}"
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(y_test, y_pred) * 100,
       "Time (s)" : time.time() - time_start,
-      "max_depth": max_depth,
-      "learning_rate": learning_rate,
-      "n_estimators": n_estimators,
-      "gamma": gamma,
-      "random_state": random_state,
-      "tree_method": tree_method,
+      "Configuration": configuration,
     })
 
   def XGBRegressor(self, max_depth = 3, learning_rate = 0.1, n_estimators = 100, gamma = 0, random_state = 42):
@@ -1199,6 +1181,7 @@ class Compare:
     if args.verbosity > 0:
       print()
 
+    configuration = f"max_depth={max_depth}, learning_rate={learning_rate}, n_estimators={n_estimators}, gamma={gamma}"
     self.results["regressors"].append({
       "Method": name,
       "MSE": metrics.mean_squared_error(self.y_test, y_pred),
@@ -1206,11 +1189,7 @@ class Compare:
       "MAE": metrics.mean_absolute_error(self.y_test, y_pred),
       "R^2": metrics.r2_score(self.y_test, y_pred),
       "Time (s)": time.time() - time_start,
-      "max_depth": max_depth,
-      "learning_rate": learning_rate,
-      "n_estimators": n_estimators,
-      "gamma": gamma,
-      "random_state": random_state,
+      "Configuration": configuration,
     })
 
   def QuadraticDiscriminantAnalysis(self, reg_param = 0.0, tol = 0.0001):
@@ -1266,12 +1245,12 @@ class Compare:
     if args.verbosity > 0:
       print()
 
+    configuration = f"reg_param={reg_param}, tol={tol}"
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
-      "reg_param": reg_param,
-      "tol": tol,
+      "Configuration": configuration,
     })
 
   def GaussianProcessClassifier(self, random_state = 42):
@@ -1335,11 +1314,12 @@ class Compare:
     if args.verbosity > 0:
       print()
 
+    configuration = ""
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
-      "random_state": random_state,
+      "Configuration": configuration,
     })
 
   def GaussianNB(self, var_smoothing = 1e-9):
@@ -1393,11 +1373,12 @@ class Compare:
     if args.verbosity > 0:
       print()
 
+    configuration = f"var_smoothing={var_smoothing}"
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
-      "var_smoothing": var_smoothing,
+      "Configuration": configuration,
     })
 
   def DecisionTreeClassifier(self, criterion = "gini", max_depth = None, random_state = 42):
@@ -1464,13 +1445,12 @@ class Compare:
     if args.verbosity > 0:
       print()
 
+    configuration = f"criterion={criterion}, max_depth={max_depth}"
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
-      "criterion": criterion,
-      "max_depth": max_depth,
-      "random_state": random_state,
+      "Configuration": configuration,
     })
 
 if __name__ == "__main__":
