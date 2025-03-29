@@ -38,6 +38,8 @@ import sklearn.tree as tree
 import sklearn.naive_bayes as naive_bayes
 import sklearn.neural_network as neural_network
 import xgboost
+import lightgbm as lgb
+import catboost
 
 from data import Data
 
@@ -238,9 +240,56 @@ class Compare:
           random_state = self.args.random_state,
         )
 
-    # Neural Network Classifier
-    #self.MLPClassifier(alpha = 1, max_iter = 1000, random_state = 42),
+    # LightGBM
+    for boosting_type in ["gbdt", "dart", "goss"]:
+      for num_leaves in [5, 10, 30, 50]:
+        for max_depth in [2, 3, 4, 5]:
+          for learning_rate in [0.1, 0.2, 0.3]:
+            for n_estimators in [100, 200]:
+              for objective in ["binary"]:
+                self.LightGBMClassifier(
+                  boosting_type = boosting_type,
+                  num_leaves = num_leaves,
+                  max_depth = max_depth,
+                  learning_rate = learning_rate,
+                  n_estimators = n_estimators,
+                  objective = objective,
+                  random_state = self.args.random_state,
+                )
 
+    # CatBoost
+    for iterations in [100, 200]:
+      for depth in [3, 5]:
+        for learning_rate in [0.1, 0.01, 0.2, 0.3]:
+          for l2_leaf_reg in [1, 3]:
+            self.CatBoost(
+              iterations = iterations,
+              depth = depth,
+              learning_rate = learning_rate,
+              l2_leaf_reg = l2_leaf_reg,
+              random_state = self.args.random_state,
+            )
+
+    # Neural Network Classifier
+    for activation in ["identity", "logistic", "relu"]:
+      for solver in ["adam", "sgd", "lbfgs"]:
+        for alpha in [0.0001, 0.001, 0.01]:
+          for learning_rate in ["constant", "invscaling", "adaptive"]:
+            for learning_rate_init in [0.001, 0.01]:
+              for max_iter in [200, 500]:
+                self.MLPClassifier(
+                  activation = activation,
+                  solver = solver,
+                  alpha = alpha,
+                  learning_rate = learning_rate,
+                  learning_rate_init = learning_rate_init,
+                  max_iter = max_iter,
+                  random_state = self.args.random_state,
+                )
+
+    self.print_classifier_results()
+
+  def print_classifier_results(self):
     data = sorted(self.results["classifiers"], key = lambda d: float(d['Accuracy (%)']), reverse = True)
 
     print()
@@ -1446,6 +1495,239 @@ class Compare:
       print()
 
     configuration = f"criterion={criterion}, max_depth={max_depth}"
+    self.results["classifiers"].append({
+      "Method": name,
+      "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "Time (s)": time.time() - time_start,
+      "Configuration": configuration,
+    })
+
+  def LightGBMClassifier(self, boosting_type = "gbdt", num_leaves = 31, max_depth = -1, learning_rate = 0.1, n_estimators = 100, objective = None, random_state = None):
+    """
+    LightGBM is a gradient boosting framework that uses tree-based learning
+    algorithms. It is designed for distributed and efficient training.
+
+    https://lightgbm.readthedocs.io/en/latest/
+    https://lightgbm.readthedocs.io/en/latest/Parameters-Tuning.html
+
+    Default Parameters:
+      LightGBM(
+        boosting_type = 'gbdt',
+        num_leaves = 31,
+        max_depth = -1,
+        learning_rate = 0.1,
+        n_estimators = 100,
+        objective = None,
+        class_weight = None,
+        random_state = None,
+        n_jobs = -1,
+        silent = True
+      )
+    """
+
+    ### Initialize
+    name = "LightGBM"
+    if self.args.verbosity > 0:
+      print(name)
+
+    time_start = time.time()
+
+    ### Create the model
+    time_previous = time_start
+
+    machine = lgb.LGBMClassifier(
+      boosting_type = boosting_type,
+      num_leaves = num_leaves,
+      max_depth = max_depth,
+      learning_rate = learning_rate,
+      n_estimators = n_estimators,
+      objective = objective,
+      random_state = random_state,
+      force_col_wise = True,
+      verbosity = -1,
+    )
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to create model")
+
+    ### Fit to training data
+    time_previous = time_start
+
+    machine.fit(self.X_train, self.y_train)
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to train model")
+
+    ### Make predictions
+    time_previous = time.time()
+
+    y_pred = machine.predict(self.X_test)
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
+
+    ### Finalize
+    if args.verbosity > 0:
+      print()
+
+    configuration = f"boosting_type={boosting_type}, num_leaves={num_leaves}, max_depth={max_depth}, learning_rate={learning_rate}, n_estimators={n_estimators}, objective={objective}"
+    self.results["classifiers"].append({
+      "Method": name,
+      "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "Time (s)": time.time() - time_start,
+      "Configuration": configuration,
+    })
+
+  def CatBoost(self, iterations = 1000, learning_rate = 0.1, depth = 6, l2_leaf_reg = 3, random_state = 42):
+    """
+    Catboost is a gradient boosting framework that uses tree-based learning
+    algorithms. It is designed for distributed and efficient training.
+
+    https://catboost.ai/en/docs/concepts/python-reference_catboostclassifier
+
+    Default Parameters:
+      CatBoostClassifier(
+        iterations = 1000,
+        learning_rate = 0.1,
+        depth = 6,
+        l2_leaf_reg = 3,
+        random_seed = None,
+        loss_function = 'Logloss',
+        eval_metric = None,
+        verbose = True
+      )
+    """
+
+    ### Initialize
+    name = "CatBoost"
+    if self.args.verbosity > 0:
+      print(name)
+
+    time_start = time.time()
+
+    ### Create the model
+    time_previous = time_start
+
+    machine = catboost.CatBoostClassifier(
+      iterations = iterations,
+      learning_rate = learning_rate,
+      depth = depth,
+      l2_leaf_reg = l2_leaf_reg,
+      random_seed = random_state,
+      verbose = False,
+      allow_writing_files = False,
+    )
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to create model")
+
+    ### Fit to training data
+    time_previous = time_start
+
+    machine.fit(self.X_train, self.y_train)
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to train model")
+
+    ### Make predictions
+    time_previous = time.time()
+
+    y_pred = machine.predict(self.X_test)
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
+
+    ### Finalize
+    if args.verbosity > 0:
+      print()
+
+    configuration = f"iterations={iterations}, learning_rate={learning_rate}, depth={depth}, l2_leaf_reg={l2_leaf_reg}"
+    self.results["classifiers"].append({
+      "Method": name,
+      "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "Time (s)": time.time() - time_start,
+      "Configuration": configuration,
+    })
+
+  def MLPClassifier(self, activation = 'relu', solver = 'adam', alpha = 0.0001, learning_rate = 'constant', learning_rate_init = 0.001, max_iter = 200, random_state = 42):
+    """
+    Multi-layer Perceptron Classifier is a supervised technique that
+    attempts to find the hyperplane that best separates the classes.
+
+    https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html
+
+    Default Parameters:
+      MLPClassifier(
+        hidden_layer_sizes = (100,),
+        *,
+        activation = 'relu',
+        solver = 'adam',
+        alpha = 0.0001,
+        batch_size = 'auto',
+        learning_rate = 'constant',
+        learning_rate_init = 0.001,
+        power_t = 0.5,
+        max_iter = 200,
+        shuffle = True,
+        random_state = None,
+        tol = 0.0001,
+        verbose = False,
+        warm_start = False,
+        momentum = 0.9,
+        nesterovs_momentum = True,
+        early_stopping = False,
+        validation_fraction = 0.1,
+        beta_1 = 0.9,
+        beta_2 = 0.999,
+        epsilon = 1e-08,
+        n_iter_no_change = 10
+      )
+    """
+
+    ### Initialize
+    name = "MLP Classifier"
+    if self.args.verbosity > 0:
+      print(name)
+
+    time_start = time.time()
+
+    ### Create the model
+    time_previous = time_start
+
+    machine = neural_network.MLPClassifier(
+      activation=activation,
+      solver=solver,
+      alpha=alpha,
+      learning_rate=learning_rate,
+      learning_rate_init=learning_rate_init,
+      max_iter=max_iter,
+      random_state=random_state
+    )
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to create model")
+
+    ### Fit to training data
+    time_previous = time_start
+
+    machine.fit(self.X_train, self.y_train)
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to train model")
+
+    ### Make predictions
+    time_previous = time.time()
+
+    y_pred = machine.predict(self.X_test)
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
+
+    ### Finalize
+    if args.verbosity > 0:
+      print()
+
+    configuration = f"activation={activation}, solver={solver}, alpha={alpha}, learning_rate={learning_rate}, learning_rate_init={learning_rate_init}, max_iter={max_iter}"
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
