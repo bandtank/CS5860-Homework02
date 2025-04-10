@@ -16,34 +16,33 @@ class SVM_Model:
     """
     Initially configure the model.
     """
-    self.lr = learning_rate
-    self.lambda_param = lambda_param
-    self.n_iters = iterations
-    self.w = None
-    self.b = None
+    self.learning_rate = learning_rate
+    self.lambda_parameter = lambda_param
+    self.num_iterations = iterations
+    self.parameters = None
+    self.offset = None
 
   def fit(self, X, y):
     """
     Fit the model to the training data.
     """
-    n_samples, n_features = X.shape
-    y_ = np.where(y <= 0, -1, 1)
+    num_sambles, n_features = X.shape
+    self.parameters = np.zeros(n_features)
+    self.offset = 0
 
-    self.w = np.zeros(n_features)
-    self.b = 0
+    y_derived = np.where(y <= 0, -1, 1)
 
     for _ in range(self.n_iters):
-      for idx, x_i in enumerate(X):
-        condition = y_[idx] * (np.dot(x_i, self.w) - self.b) >= 1
-        if condition:
-          self.w -= self.lr * (2 * self.lambda_param * self.w)
+      for count, x_i in enumerate(X):
+        if y_derived[count] * (np.dot(x_i, self.parameters) - self.offset) >= 1:
+          self.parameters -= self.lr * (2 * self.lambda_parameter * self.parameters)
         else:
-          self.w -= self.lr * (2 * self.lambda_param * self.w - np.dot(x_i, y_[idx]))
-          self.b -= self.lr * y_[idx]
+          self.offset -= self.lr * y_derived[count]
+          self.parameters -= self.lr * (2 * self.lambda_parameter * self.parameters - np.dot(x_i, y_derived[count]))
 
   def predict(self, X):
     """
     Make predictions using the learned parameters and bias.
     """
-    approx = np.dot(X, self.w) - self.b
+    approx = np.dot(X, self.parameters) - self.offset
     return np.sign(approx)
