@@ -475,7 +475,7 @@ class Compare:
       algorithm = algorithm,
       leaf_size = leaf_size,
       p = p,
-      n_jobs = -1, # Use all CPU cores
+      n_jobs = 8, # Use all CPU cores
     )
 
     if self.args.verbosity > 0:
