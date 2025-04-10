@@ -41,6 +41,7 @@ import xgboost
 import lightgbm as lgb
 import catboost
 
+from SVM_Model import SVM_Model
 from data import Data
 
 class Compare:
@@ -117,18 +118,14 @@ class Compare:
 
     print("Running Classifiers...")
 
-    # Nearest Neighbors
-    # This isn't classification, but it is a good example of how to use
-    # the NearestNeighbors class. It is used to find the k-nearest
-    # neighbors of a target data point.
-    #
-    # self.NearestNeighbors(
-    #   n_neighbors = 5,
-    #   algorithm = "ball_tree",
-    #   leaf_size = 30
-    # )
+    for C in [0.0001, 0.5, 1.0, 3.0]:
+      for learning_rate in [0.001, 0.01, 0.1]:
+        self.CustomSVM(
+          learning_rate = learning_rate,
+          C = C,
+        )
 
-    # K Nearest Neighbors
+    ## K Nearest Neighbors
     for weight in ["uniform", "distance"]:
       for n_neighbors in [3, 5, 7]:
         for algorithm in ["ball_tree", "kd_tree", "brute"]:
@@ -584,6 +581,58 @@ class Compare:
       "Configuration": configuration,
     })
 
+  def CustomSVM(self, learning_rate = 0.001, C = 1.0):
+    """
+    A custom SVM classifier from SVM_Model.py.
+    """
+
+    ### Initialize
+    name = "Custom SVM"
+    if self.args.verbosity > 0:
+      print(name)
+
+    time_start = time.time()
+
+    ### Create the model
+    time_previous = time_start
+
+    machine = SVM_Model(
+      learning_rate = learning_rate,
+      lambda_param = C,
+      iterations = 1000,
+    )
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to create model")
+
+    ### Fit to training data
+    time_previous = time_start
+
+    machine.fit(self.X_train, self.y_train)
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to train model")
+
+    ### Make predictions
+    time_previous = time.time()
+
+    y_pred = machine.predict(self.X_test)
+
+    if self.args.verbosity > 0:
+      print(f"  {time.time() - time_previous:.4f}  Time to generate predictions")
+
+    ### Finalize
+    if args.verbosity > 0:
+      print()
+
+    configuration = f"C={C}, rate={learning_rate}"
+    self.results["classifiers"].append({
+      "Method": name,
+      "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "Time (s)": time.time() - time_start,
+      "Configuration": configuration,
+    })
+
   def SVC(self, C = 1.0, kernel = "linear", tol = 0.001, gamma = "scale", random_state = 42):
     """
     Support Vector Classifier is a supervised technique that attempts
@@ -793,6 +842,7 @@ class Compare:
       alpha = alpha,
       tol = tol,
       random_state = random_state,
+      n_jobs = -1,
     )
 
     if self.args.verbosity > 0:
@@ -1545,6 +1595,7 @@ class Compare:
       random_state = random_state,
       force_col_wise = True,
       verbosity = -1,
+      n_jobs = 8,
     )
 
     if self.args.verbosity > 0:
@@ -1616,6 +1667,7 @@ class Compare:
       random_seed = random_state,
       verbose = False,
       allow_writing_files = False,
+      thread_count = 8,
     )
 
     if self.args.verbosity > 0:
