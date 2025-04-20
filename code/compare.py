@@ -124,6 +124,7 @@ class Compare:
         self.CustomSVM(
           learning_rate = learning_rate,
           C = C,
+          iterations = 500,
         )
 
     ## K Nearest Neighbors
@@ -582,7 +583,7 @@ class Compare:
       "Configuration": configuration,
     })
 
-  def CustomSVM(self, learning_rate = 0.001, C = 1.0):
+  def CustomSVM(self, learning_rate = 0.001, C = 1.0, iterations = 1000):
     """
     A custom SVM classifier from SVM_Model.py.
     """
@@ -600,7 +601,7 @@ class Compare:
     machine = SVM_Model(
       learning_rate = learning_rate,
       lambda_param = C,
-      iterations = 1000,
+      iterations = iterations,
     )
 
     if self.args.verbosity > 0:
