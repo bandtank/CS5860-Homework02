@@ -2,6 +2,7 @@ import argparse
 import sys
 
 import pandas as pd
+import numpy as np
 
 class Data:
   """
@@ -38,6 +39,8 @@ class Data:
     # Split the data into features and labels
     X = df[:,:-1].astype(int)
     y = df[:,-1].astype(int)
+
+    y = np.array([1 if x == 2 else -1 for x in y])
 
     return X, y
 
