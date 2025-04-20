@@ -79,6 +79,7 @@ class Compare:
       X,
       y,
       test_size = args.test_ratio,
+      shuffle = True,
       random_state = args.random_state
     )
 
