@@ -26,19 +26,17 @@ class SVM_Model:
     """
     Fit the model to the training data.
     """
-    num_sambles, n_features = X.shape
+    _, n_features = X.shape
     self.parameters = np.zeros(n_features)
     self.offset = 0
 
-    y_derived = np.where(y <= 0, -1, 1)
-
-    for _ in range(self.n_iters):
+    for _ in range(self.num_iterations):
       for count, x_i in enumerate(X):
-        if y_derived[count] * (np.dot(x_i, self.parameters) - self.offset) >= 1:
-          self.parameters -= self.lr * (2 * self.lambda_parameter * self.parameters)
+        if y[count] * (np.dot(x_i, self.parameters) - self.offset) >= 1:
+          self.parameters -= self.learning_rate * (2 * self.lambda_parameter * self.parameters)
         else:
-          self.offset -= self.lr * y_derived[count]
-          self.parameters -= self.lr * (2 * self.lambda_parameter * self.parameters - np.dot(x_i, y_derived[count]))
+          self.parameters -= self.learning_rate * (2 * self.lambda_parameter * self.parameters - np.dot(x_i, y[count]))
+          self.offset -= self.learning_rate * y[count]
 
   def predict(self, X):
     """
@@ -46,3 +44,23 @@ class SVM_Model:
     """
     approx = np.dot(X, self.parameters) - self.offset
     return np.sign(approx)
+
+if __name__ == "__main__":
+  from sklearn import datasets
+  from sklearn.model_selection import train_test_split
+
+  X, y = datasets.make_blobs(
+      n_samples=500, n_features=2, centers=2, cluster_std=1.05, random_state=1
+  )
+
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, shuffle=True, random_state=1)
+
+  clf = SVM_Model(lambda_param=0.0001, learning_rate=0.01, iterations=1000)
+  clf.fit(X_train, y_train)
+  predictions = clf.predict(X_test)
+
+  def accuracy(y_true, y_pred):
+      accuracy = np.sum(y_true==y_pred) / len(y_true)
+      return accuracy
+
+  print("SVM Accuracy: ", accuracy(y_test, predictions))
