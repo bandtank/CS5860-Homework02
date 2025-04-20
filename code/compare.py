@@ -119,19 +119,19 @@ class Compare:
 
     print("Running Classifiers...")
 
-    for C in [0.0001, 0.5, 1.0, 3.0]:
-      for learning_rate in [0.001, 0.01, 0.1]:
+    for C in [0.0001, 5.0]:
+      for learning_rate in [0.00001, 0.1]:
         self.CustomSVM(
           learning_rate = learning_rate,
           C = C,
-          iterations = 500,
+          iterations = 100,
         )
 
-    ## K Nearest Neighbors
-    for weight in ["uniform", "distance"]:
-      for n_neighbors in [3, 5, 7]:
-        for algorithm in ["ball_tree", "kd_tree", "brute"]:
-          for leaf_size in [10, 20, 30]:
+    # K Nearest Neighbors
+    for weight in ["uniform"]:
+      for n_neighbors in [3, 7]:
+        for algorithm in ["ball_tree"]:
+          for leaf_size in [10, 30]:
             for p in [1, 2]:
               self.KNearestClassifier(
                 n_neighbors = n_neighbors,
@@ -142,10 +142,10 @@ class Compare:
               )
 
     # SVC
-    for C in [0.1, 0.5, 1.0]:
-      for tol in [0.0001, 0.001, 0.01]:
-        for kernel in ["linear", "rbf", "poly"]:
-          for gamma in [0.0001, 0.001, 0.01]:
+    for C in [0.1, 1.0]:
+      for tol in [0.0001]:
+        for kernel in ["linear"]:
+          for gamma in [0.0001, 0.01]:
             self.SVC(
               C = C,
               tol = tol,
@@ -156,8 +156,8 @@ class Compare:
 
     # LinearSVC
     for loss in ["squared_hinge", "hinge"]:
-      for C in [0.1, 0.5, 1.0]:
-        for tol in [0.0001, 0.001, 0.01]:
+      for C in [0.01, 1.0]:
+        for tol in [0.0001, 0.01]:
           for max_iter in [1000, 10000]:
             self.LinearSVC(
               loss = loss,
@@ -169,8 +169,8 @@ class Compare:
 
     # SGD Classifier
     for loss in ["hinge", "squared_hinge"]:
-      for alpha in [0.0001, 0.001, 0.01]:
-        for tol in [0.0001, 0.001, 0.01]:
+      for alpha in [0.0001, 0.01]:
+        for tol in [0.0001, 0.01]:
           self.SGDClassifier(
             loss = loss,
             alpha = alpha,
@@ -179,8 +179,8 @@ class Compare:
           )
 
     # Random Forests
-    for n_estimators in [10, 50, 100, 200]:
-      for max_depth in [2, 3, 4]:
+    for n_estimators in [10, 200]:
+      for max_depth in [2, 4]:
         for bootstrap in [True, False]:
           self.RandomForests(
             n_estimators = n_estimators,
@@ -190,8 +190,8 @@ class Compare:
           )
 
     # AdaBoost
-    for n_estimators in [1, 50, 100, 300]:
-      for learning_rate in [0.1, 0.2, 0.3]:
+    for n_estimators in [50, 300]:
+      for learning_rate in [0.1, 0.3]:
         self.AdaBoost(
           n_estimators = n_estimators,
           learning_rate = learning_rate,
@@ -200,10 +200,10 @@ class Compare:
 
     # XGBoost
     for max_depth in [3, 5]:
-      for learning_rate in [0.1, 0.2, 0.3]:
+      for learning_rate in [0.01, 0.3]:
         for n_estimators in [100, 300]:
-          for gamma in [0, 1, 2]:
-            for tree_method in ["hist", "exact", "approx"]:
+          for gamma in [0, 2]:
+            for tree_method in ["hist"]:
               self.XGBClassifier(
                 max_depth = max_depth,
                 learning_rate = learning_rate,
@@ -218,21 +218,21 @@ class Compare:
 
     # Quadratic Discriminant Analysis
     for reg_param in [0.1, 0.2]:
-      for tol in [0.0001, 0.001, 0.01]:
+      for tol in [0.0001, 0.01]:
         self.QuadraticDiscriminantAnalysis(
           reg_param = reg_param,
           tol = tol,
         )
 
     # Gaussian Naive Bayes
-    for var_smoothing in [1e-9, 1e-8, 1e-7]:
+    for var_smoothing in [1e-9, 1e-7]:
       self.GaussianNB(
         var_smoothing = var_smoothing,
       )
 
     # Decision Tree Classifier
     for criterion in ["gini", "entropy"]:
-      for max_depth in [2, 3, 4]:
+      for max_depth in [2, 4]:
         self.DecisionTreeClassifier(
           criterion = criterion,
           max_depth = max_depth,
@@ -240,11 +240,11 @@ class Compare:
         )
 
     # LightGBM
-    for boosting_type in ["gbdt", "dart", "goss"]:
-      for num_leaves in [5, 10, 30, 50]:
-        for max_depth in [2, 3, 4, 5]:
-          for learning_rate in [0.1, 0.2, 0.3]:
-            for n_estimators in [100, 200]:
+    for boosting_type in ["gbdt", "dart"]:
+      for num_leaves in [5, 50]:
+        for max_depth in [5]:
+          for learning_rate in [0.01, 0.3]:
+            for n_estimators in [200]:
               for objective in ["binary"]:
                 self.LightGBMClassifier(
                   boosting_type = boosting_type,
@@ -257,9 +257,9 @@ class Compare:
                 )
 
     # CatBoost
-    for iterations in [100, 200]:
-      for depth in [3, 5]:
-        for learning_rate in [0.1, 0.01, 0.2, 0.3]:
+    for iterations in [200]:
+      for depth in [5]:
+        for learning_rate in [0.01, 0.3]:
           for l2_leaf_reg in [1, 3]:
             self.CatBoost(
               iterations = iterations,
@@ -270,12 +270,12 @@ class Compare:
             )
 
     # Neural Network Classifier
-    for activation in ["identity", "logistic", "relu"]:
-      for solver in ["adam", "sgd", "lbfgs"]:
-        for alpha in [0.0001, 0.001, 0.01]:
-          for learning_rate in ["constant", "invscaling", "adaptive"]:
+    for activation in ["relu"]:
+      for solver in ["sgd"]:
+        for alpha in [0.0001, 0.01]:
+          for learning_rate in ["constant"]:
             for learning_rate_init in [0.001, 0.01]:
-              for max_iter in [200, 500]:
+              for max_iter in [500]:
                 self.MLPClassifier(
                   activation = activation,
                   solver = solver,
@@ -507,6 +507,9 @@ class Compare:
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "F1": metrics.f1_score(self.y_test, y_pred) * 100,
+      "Precision": metrics.precision_score(self.y_test, y_pred) * 100,
+      "Recall": metrics.recall_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
       "Configuration": configuration,
     })
@@ -631,6 +634,9 @@ class Compare:
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "F1": metrics.f1_score(self.y_test, y_pred) * 100,
+      "Precision": metrics.precision_score(self.y_test, y_pred) * 100,
+      "Recall": metrics.recall_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
       "Configuration": configuration,
     })
@@ -708,6 +714,9 @@ class Compare:
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "F1": metrics.f1_score(self.y_test, y_pred) * 100,
+      "Precision": metrics.precision_score(self.y_test, y_pred) * 100,
+      "Recall": metrics.recall_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
       "Configuration": configuration,
     })
@@ -782,6 +791,9 @@ class Compare:
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "F1": metrics.f1_score(self.y_test, y_pred) * 100,
+      "Precision": metrics.precision_score(self.y_test, y_pred) * 100,
+      "Recall": metrics.recall_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
       "Configuration": configuration,
     })
@@ -874,6 +886,9 @@ class Compare:
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "F1": metrics.f1_score(self.y_test, y_pred) * 100,
+      "Precision": metrics.precision_score(self.y_test, y_pred) * 100,
+      "Recall": metrics.recall_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
       "Configuration": configuration,
     })
@@ -954,6 +969,9 @@ class Compare:
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "F1": metrics.f1_score(self.y_test, y_pred) * 100,
+      "Precision": metrics.precision_score(self.y_test, y_pred) * 100,
+      "Recall": metrics.recall_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
       "Configuration": configuration,
     })
@@ -1019,6 +1037,9 @@ class Compare:
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "F1": metrics.f1_score(self.y_test, y_pred) * 100,
+      "Precision": metrics.precision_score(self.y_test, y_pred) * 100,
+      "Recall": metrics.recall_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
       "Configuration": configuration,
     })
@@ -1198,6 +1219,9 @@ class Compare:
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(y_test, y_pred) * 100,
+      "F1": metrics.f1_score(self.y_test, y_pred, average='micro') * 100,
+      "Precision": metrics.precision_score(self.y_test, y_pred, average='micro') * 100,
+      "Recall": metrics.recall_score(self.y_test, y_pred, average='micro') * 100,
       "Time (s)" : time.time() - time_start,
       "Configuration": configuration,
     })
@@ -1350,6 +1374,9 @@ class Compare:
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "F1": metrics.f1_score(self.y_test, y_pred) * 100,
+      "Precision": metrics.precision_score(self.y_test, y_pred) * 100,
+      "Recall": metrics.recall_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
       "Configuration": configuration,
     })
@@ -1419,6 +1446,9 @@ class Compare:
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "F1": metrics.f1_score(self.y_test, y_pred) * 100,
+      "Precision": metrics.precision_score(self.y_test, y_pred) * 100,
+      "Recall": metrics.recall_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
       "Configuration": configuration,
     })
@@ -1478,6 +1508,9 @@ class Compare:
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "F1": metrics.f1_score(self.y_test, y_pred) * 100,
+      "Precision": metrics.precision_score(self.y_test, y_pred) * 100,
+      "Recall": metrics.recall_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
       "Configuration": configuration,
     })
@@ -1550,6 +1583,9 @@ class Compare:
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "F1": metrics.f1_score(self.y_test, y_pred) * 100,
+      "Precision": metrics.precision_score(self.y_test, y_pred) * 100,
+      "Recall": metrics.recall_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
       "Configuration": configuration,
     })
@@ -1627,6 +1663,9 @@ class Compare:
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "F1": metrics.f1_score(self.y_test, y_pred) * 100,
+      "Precision": metrics.precision_score(self.y_test, y_pred) * 100,
+      "Recall": metrics.recall_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
       "Configuration": configuration,
     })
@@ -1699,6 +1738,9 @@ class Compare:
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "F1": metrics.f1_score(self.y_test, y_pred) * 100,
+      "Precision": metrics.precision_score(self.y_test, y_pred) * 100,
+      "Recall": metrics.recall_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
       "Configuration": configuration,
     })
@@ -1785,6 +1827,9 @@ class Compare:
     self.results["classifiers"].append({
       "Method": name,
       "Accuracy (%)": metrics.accuracy_score(self.y_test, y_pred) * 100,
+      "F1": metrics.f1_score(self.y_test, y_pred) * 100,
+      "Precision": metrics.precision_score(self.y_test, y_pred) * 100,
+      "Recall": metrics.recall_score(self.y_test, y_pred) * 100,
       "Time (s)": time.time() - time_start,
       "Configuration": configuration,
     })
